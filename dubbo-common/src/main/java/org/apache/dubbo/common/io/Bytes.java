@@ -35,8 +35,8 @@ import java.util.zip.InflaterInputStream;
  * CodecUtils.
  */
 public class Bytes {
-    private static final String C64 =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="; // default base64.
+    private static final String C64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="; // default
+    // base64.
 
     private static final char[]
             BASE16 = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'},
@@ -45,9 +45,19 @@ public class Bytes {
 
     private static final Map<Integer, byte[]> DECODE_TABLE_MAP = new ConcurrentHashMap<>();
 
-    private static final ThreadLocal<MessageDigest> MD = new ThreadLocal<>();
+    private static final ThreadLocal<MessageDigest> DIGEST = new ThreadLocal<>();
 
     private Bytes() {}
+
+    /**
+     * get sha3-256.
+     *
+     * @param is input stream.
+     * @return SHA3-256 byte array.
+     *
+     * public static byte[] getSHA3(InputStream is) throws IOException {
+     * return getSHA3(is, 1024 * 8);
+     * }  */
 
     /**
      * byte array copy.
@@ -818,49 +828,103 @@ public class Bytes {
     }
 
     /**
-     * get md5.
+     * get sha3-256.
      *
      * @param str input string.
-     * @return MD5 byte array.
+     * @return SHA3-256 byte array.
      */
-    public static byte[] getMD5(String str) {
-        return getMD5(str.getBytes(StandardCharsets.UTF_8));
+    public static byte[] getSHA3(String str) {
+        return getSHA3(str.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
-     * get md5.
+     * get sha3-256.
      *
      * @param source byte array source.
-     * @return MD5 byte array.
+     * @return SHA3-256 byte array.
      */
-    public static byte[] getMD5(byte[] source) {
+    public static byte[] getSHA3(byte[] source) {
         MessageDigest md = getMessageDigest();
         return md.digest(source);
     }
 
     /**
-     * get md5.
+     * get sha3-256.
      *
      * @param file file source.
-     * @return MD5 byte array.
+     * @return SHA3-256 byte array.
      */
-    public static byte[] getMD5(File file) throws IOException {
+    public static byte[] getSHA3(File file) throws IOException {
         InputStream is = new FileInputStream(file);
         try {
-            return getMD5(is);
+            return getSHA3(is);
         } finally {
             is.close();
         }
     }
 
     /**
-     * get md5.
+     * get sha3-256.
      *
      * @param is input stream.
-     * @return MD5 byte array.
+     * @return SHA3-256 byte array.
      */
+    public static byte[] getSHA3(InputStream is) throws IOException {
+        return getSHA3(is, 1024 * 8);
+    }
+
+    // Deprecated methods for backward compatibility - delegate to SHA3 methods
+
+    /**
+     * get md5 (deprecated - now uses SHA3-256 for security).
+     *
+     * @param str input string.
+     * @return SHA3-256 byte array.
+     * @deprecated Use getSHA3(String) instead. This method now uses SHA3-256 for
+     *             improved security.
+     */
+    @Deprecated
+    public static byte[] getMD5(String str) {
+        return getSHA3(str);
+    }
+
+    /**
+     * get md5 (deprecated - now uses SHA3-256 for security).
+     *
+     * @param source byte array source.
+     * @return SHA3-256 byte array.
+     * @deprecated Use getSHA3(byte[]) instead. This method now uses SHA3-256 for
+     *             improved security.
+     */
+    @Deprecated
+    public static byte[] getMD5(byte[] source) {
+        return getSHA3(source);
+    }
+
+    /**
+     * get md5 (deprecated - now uses SHA3-256 for security).
+     *
+     * @param file file source.
+     * @return SHA3-256 byte array.
+     * @deprecated Use getSHA3(File) instead. This method now uses SHA3-256 for
+     *             improved security.
+     */
+    @Deprecated
+    public static byte[] getMD5(File file) throws IOException {
+        return getSHA3(file);
+    }
+
+    /**
+     * get md5 (deprecated - now uses SHA3-256 for security).
+     *
+     * @param is input stream.
+     * @return SHA3-256 byte array.
+     * @deprecated Use getSHA3(InputStream) instead. This method now uses SHA3-256
+     *             for improved security.
+     */
+    @Deprecated
     public static byte[] getMD5(InputStream is) throws IOException {
-        return getMD5(is, 1024 * 8);
+        return getSHA3(is);
     }
 
     private static byte hex(char c) {
@@ -906,7 +970,7 @@ public class Bytes {
         return ret;
     }
 
-    private static byte[] getMD5(InputStream is, int bs) throws IOException {
+    private static byte[] getSHA3(InputStream is, int bs) throws IOException {
         MessageDigest md = getMessageDigest();
         byte[] buf = new byte[bs];
         while (is.available() > 0) {
@@ -923,11 +987,11 @@ public class Bytes {
     }
 
     private static MessageDigest getMessageDigest() {
-        MessageDigest ret = MD.get();
+        MessageDigest ret = DIGEST.get();
         if (ret == null) {
             try {
-                ret = MessageDigest.getInstance("MD5");
-                MD.set(ret);
+                ret = MessageDigest.getInstance("SHA3-256");
+                DIGEST.set(ret);
             } catch (NoSuchAlgorithmException e) {
                 throw new RuntimeException(e);
             }

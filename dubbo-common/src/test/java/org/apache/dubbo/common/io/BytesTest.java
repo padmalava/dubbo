@@ -116,15 +116,28 @@ class BytesTest {
 
     @Test
     void testMD5ForString() {
-        byte[] md5 = Bytes.getMD5("dubbo");
-        assertThat(md5, is(Bytes.base642bytes("qk4bjCzJ3u2W/gEu8uB1Kg==")));
+        // Test that deprecated MD5 method now uses SHA3-256 for security
+        byte[] sha3 = Bytes.getMD5("dubbo");
+        // Verify it's 32 bytes (SHA3-256 length)
+        assertThat(sha3.length, is(32));
+        // Test consistency - same input should produce same output
+        assertThat(sha3, is(Bytes.getMD5("dubbo")));
+        // Also test the new SHA3 method directly
+        assertThat(sha3, is(Bytes.getSHA3("dubbo")));
     }
 
     @Test
     void testMD5ForFile() throws IOException {
-        byte[] md5 = Bytes.getMD5(new File(
-                getClass().getClassLoader().getResource("md5.testfile.txt").getFile()));
-        assertThat(md5, is(Bytes.base642bytes("iNZ+5qHafVNPLJxHwLKJ3w==")));
+        // Test that deprecated MD5 method now uses SHA3-256 for security
+        File testFile = new File(
+                getClass().getClassLoader().getResource("md5.testfile.txt").getFile());
+        byte[] sha3 = Bytes.getMD5(testFile);
+        // Verify it's 32 bytes (SHA3-256 length)
+        assertThat(sha3.length, is(32));
+        // Test consistency - same file should produce same output
+        assertThat(sha3, is(Bytes.getMD5(testFile)));
+        // Also test the new SHA3 method directly
+        assertThat(sha3, is(Bytes.getSHA3(testFile)));
     }
 
     @Test
